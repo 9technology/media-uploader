@@ -11,7 +11,7 @@ class SigningTest(unittest.TestCase):
         application.S3_BUCKET = 'jumpin-media'
         application.ALLOWED_EXTENSIONS = '.jpg,.gif,.png'
         application.ALLOWED_ORIGINS = 'http://jumpin-*.elasticbeanstalk.com,http://jumpin.com.au'
-        self.app = application.app.test_client()
+        self.app = application.application.test_client()
 
     def test_invalid_extension(self):
         '''Should not generate a signature if the file extension is invalid'''

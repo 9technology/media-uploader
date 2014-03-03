@@ -8,7 +8,7 @@ import flask
 import json
 from fnmatch import fnmatch
 
-app = flask.Flask(__name__)
+application = flask.Flask(__name__)
 
 # Env variables
 ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS')
@@ -29,7 +29,7 @@ def cors_headers_for(origin):
     return cors_headers
 
 
-@app.route('/')
+@application.route('/')
 def sign_s3():
     if None in [AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET]:
         return json.dumps({"error": "No AWS Creds"}), 500
@@ -57,4 +57,4 @@ def sign_s3():
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8000))
-    app.run(host='0.0.0.0', port=port)
+    application.run(host='0.0.0.0', port=port)
