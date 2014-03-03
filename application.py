@@ -12,6 +12,8 @@ application = flask.Flask(__name__)
 
 # Env variables
 ALLOWED_ORIGINS = os.getenv('ALLOWED_ORIGINS')
+if ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS = ALLOWED_ORIGINS.split(',')
 ALLOWED_EXTENSIONS = os.getenv('ALLOWED_EXTENSIONS')
 AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
@@ -24,8 +26,11 @@ def cors_headers_for(origin):
         'Access-Control-Allow-Origin': 'null', 
         'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     }
-    if origin and any(fnmatch(origin, allowed_origin) for allowed_origin in ALLOWED_ORIGINS):
-        cors_headers['Access-Control-Allow-Origin'] = origin
+    if origin:
+        if any(fnmatch(origin, allowed_origin) for allowed_origin in ALLOWED_ORIGINS):
+            cors_headers['Access-Control-Allow-Origin'] = origin
+        elif origin.startswith('http://localhost'):
+            cors_headers['Access-Control-Allow-Origin'] = origin
     return cors_headers
 
 

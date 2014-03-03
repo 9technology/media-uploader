@@ -10,7 +10,7 @@ class SigningTest(unittest.TestCase):
         application.AWS_REGION = 'ap-southeast-2'
         application.S3_BUCKET = 'jumpin-media'
         application.ALLOWED_EXTENSIONS = '.jpg,.gif,.png'
-        application.ALLOWED_ORIGINS = 'http://jumpin-*.elasticbeanstalk.com,http://jumpin.com.au'
+        application.ALLOWED_ORIGINS = ['http://jumpin-*.elasticbeanstalk.com', 'http://jumpin.com.au']
         self.app = application.application.test_client()
 
     def test_root(self):
@@ -52,6 +52,11 @@ class SigningTest(unittest.TestCase):
         '''Should return a dynamic Access-Control-Allow-Origin, if the Origin header matches any ALLOWED_ORIGINS'''
         resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg', headers={'Origin': 'http://jumpin.com.au'})
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'http://jumpin.com.au')
+
+    def test_cors_localhost(self):
+        '''Should return Access-Control-Allow-Origin: localhost for local testing'''
+        resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg', headers={'Origin': 'http://localhost:5000'})
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'http://localhost:5000')
 
     def test_signature_expiry(self):
         '''Should expire the signature in 100 seconds'''
