@@ -13,6 +13,13 @@ class SigningTest(unittest.TestCase):
         application.ALLOWED_ORIGINS = 'http://jumpin-*.elasticbeanstalk.com,http://jumpin.com.au'
         self.app = application.application.test_client()
 
+    def test_root(self):
+        '''Should return an error if no object_name was provided'''
+        resp = self.app.get('/')
+        self.assertEqual(resp.status_code, 400)
+        obj = json.loads(resp.data)
+        self.assertIn('object_name', obj['error'])
+
     def test_invalid_extension(self):
         '''Should not generate a signature if the file extension is invalid'''
         resp = self.app.get('/?object_name=test.exe&object_type=image/jpg')

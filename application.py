@@ -35,6 +35,9 @@ def sign_s3():
         return json.dumps({"error": "No AWS Creds"}), 500
 
     object_name = flask.request.args.get('object_name')
+    if not object_name:
+        return json.dumps({"error": "No object_name provided. Provide ?object_name and ?object_type as query parameters."}), 400
+
     if not any(object_name.endswith(extension) for extension in ALLOWED_EXTENSIONS):
         return json.dumps({"error": "Invalid extension. We only allow {}".format(ALLOWED_EXTENSIONS)}), 403
 
