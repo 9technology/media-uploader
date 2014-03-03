@@ -6,6 +6,7 @@ import sha
 import os
 import flask
 import json
+from fnmatch import fnmatch
 
 app = flask.Flask(__name__)
 
@@ -18,13 +19,14 @@ AWS_REGION = os.environ.get('AWS_REGION')
 S3_BUCKET = os.environ.get('S3_BUCKET')
 
 
-@app.after_request
-def add_cors_header(data):
-    response = flask.make_response(data)
-    response.headers['Access-Control-Allow-Origin'] = ALLOWED_ORIGINS
-    response.headers[
-        'Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
-    return response
+def cors_headers_for(origin):
+    cors_headers = {
+        'Access-Control-Allow-Origin': 'null', 
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+    }
+    if origin and any(fnmatch(origin, allowed_origin) for allowed_origin in ALLOWED_ORIGINS):
+        cors_headers['Access-Control-Allow-Origin'] = origin
+    return cors_headers
 
 
 @app.route('/')
@@ -51,7 +53,7 @@ def sign_s3():
     return json.dumps({
         'signed_request': '%s?AWSAccessKeyId=%s&Expires=%d&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
         'url': url
-    })
+    }), 200, cors_headers_for(flask.request.headers.get('Origin'))
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8000))

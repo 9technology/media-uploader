@@ -28,9 +28,17 @@ Returns an object with `url` and `signed_request`.
 You'll need to configure the following environment variables:
 
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` for the AWS creds
+
 - `S3_BUCKET` and `AWS_REGION` with the s3 bucket details
+
 - `ALLOWED_EXTENSIONS`, a comma separated list of file types to allow client-side uploads, e.g. `.jpg,.png`
-- (optionally) `ALLOWED_ORIGINS`, hosts to add to the `Access-Control-Allow-Origin` header, e.g. `jumpin.com.au`
+
+- (optionally) `ALLOWED_ORIGINS`, a comma-separated list of glob patterns that are allowed to request the signature.
+  If any of these match the requesting `Origin:` header (using [fnmatch](http://docs.python.org/2/library/fnmatch.html))
+  The service will allow that origin by returning `Access-Control-Allow-Origin: <Origin>`.
+  This is to allow requesting the signature from a dynamic hostname or subdomain, e.g. jumpin-1aef7.elasticbeanstalk.com,
+  which would normally not be possible with the CORS header
+
 - (optionally) `PORT`, the HTTP port to listen on (defaults to 8000)
 
 To start the server, set the above env variables somehow, and run:

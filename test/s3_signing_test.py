@@ -10,7 +10,7 @@ class SigningTest(unittest.TestCase):
         application.AWS_REGION = 'ap-southeast-2'
         application.S3_BUCKET = 'jumpin-media'
         application.ALLOWED_EXTENSIONS = '.jpg,.gif,.png'
-        application.ALLOWED_ORIGINS = 'jumpin.com.au'
+        application.ALLOWED_ORIGINS = 'http://jumpin-*.elasticbeanstalk.com,http://jumpin.com.au'
         self.app = application.app.test_client()
 
     def test_invalid_extension(self):
@@ -37,9 +37,14 @@ class SigningTest(unittest.TestCase):
         self.assertIsNotNone(obj.get('signed_request'))
 
     def test_cors(self):
-        '''Should return a CORS header with ALLOWED_ORIGINS'''
+        '''If no Origin: header is provided, return CORS=null'''
         resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg')
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'jumpin.com.au')
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'null')
+
+    def test_cors_wildcard(self):
+        '''Should return a dynamic Access-Control-Allow-Origin, if the Origin header matches any ALLOWED_ORIGINS'''
+        resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg', headers={'Origin': 'http://jumpin.com.au'})
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'http://jumpin.com.au')
 
     def test_signature_expiry(self):
         '''Should expire the signature in 100 seconds'''
