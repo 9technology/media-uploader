@@ -44,8 +44,13 @@ class SigningTest(unittest.TestCase):
         self.assertIsNotNone(obj.get('signed_request'))
 
     def test_cors(self):
-        '''If no Origin: header is provided, return CORS=null'''
+        '''Should return CORS=null if no origin header is provided'''
         resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg')
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'null')
+
+    def test_cors_incorrect_origin(self):
+        '''Should return CORS=null if an incorrect Origin: header is provided'''
+        resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg', headers={'Origin': 'http://facebook.com'})
         self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'null')
 
     def test_cors_wildcard(self):
