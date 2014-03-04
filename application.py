@@ -19,6 +19,7 @@ AWS_ACCESS_KEY = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION')
 S3_BUCKET = os.environ.get('S3_BUCKET')
+SIGNATURE_EXPIRY_SECONDS = 100
 
 
 def cors_headers_for(origin):
@@ -47,7 +48,7 @@ def sign_s3():
         return json.dumps({"error": "Invalid extension. We only allow {}".format(ALLOWED_EXTENSIONS)}), 403
 
     mime_type = flask.request.args.get('object_type')
-    expires = int(time.time() + 100)
+    expires = int(time.time() + SIGNATURE_EXPIRY_SECONDS)
     amz_headers = "x-amz-acl:public-read"
     put_request = "PUT\n\n%s\n%d\n%s\n/%s/%s" % (mime_type,
                                                  expires, amz_headers, S3_BUCKET, object_name)
