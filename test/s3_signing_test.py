@@ -75,5 +75,5 @@ class SigningTest(unittest.TestCase):
         with freeze_time('2014-01-01'):
             resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg')
             obj = json.loads(resp.data)
-            self.assertTrue(obj['signed_request'].endswith('Signature=cseTJ%2FbB7%2B82ZP1S1izuRuiiCQM%3D'))
+            self.assertTrue(obj['signed_request'].endswith('Signature=MG9h6uOREqpZ9Ws3Yt0EnrnlIEg%3D'))
 

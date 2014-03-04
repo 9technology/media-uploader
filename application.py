@@ -49,9 +49,8 @@ def sign_s3():
 
     mime_type = flask.request.args.get('object_type')
     expires = int(time.time() + SIGNATURE_EXPIRY_SECONDS)
-    amz_headers = "x-amz-acl:public-read"
-    put_request = "PUT\n\n%s\n%d\n%s\n/%s/%s" % (mime_type,
-                                                 expires, amz_headers, S3_BUCKET, object_name)
+    put_request = "PUT\n\n%s\n%d\n/%s/%s" % (mime_type,
+                                                 expires, S3_BUCKET, object_name)
     signature = base64.encodestring(
         hmac.new(AWS_SECRET_KEY, put_request, sha).digest())
     signature = urllib.quote_plus(signature.strip())
