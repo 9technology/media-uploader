@@ -1,7 +1,9 @@
 import unittest
 import json
-import application
+import uuid
 from freezegun import freeze_time
+
+import application
 
 class SigningTest(unittest.TestCase):
     def setUp(self):
@@ -11,6 +13,9 @@ class SigningTest(unittest.TestCase):
         application.S3_BUCKET = 'jumpin-media'
         application.ALLOWED_EXTENSIONS = '.jpg,.gif,.png'
         application.ALLOWED_ORIGINS = ['http://jumpin-*.elasticbeanstalk.com', 'http://jumpin.com.au']
+        def canned_uuid():
+            return uuid.UUID('00010203-0405-0607-0809-0a0b0c0d0e0f')
+        uuid.uuid4 = canned_uuid
         self.app = application.application.test_client()
 
     def test_root(self):
@@ -40,7 +45,7 @@ class SigningTest(unittest.TestCase):
         resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg')
         self.assertEqual(resp.status_code, 200)
         obj = json.loads(resp.data)
-        self.assertEqual(obj.get('url'), 'https://jumpin-media.s3-ap-southeast-2.amazonaws.com/test.jpg')
+        self.assertEqual(obj.get('url'), 'https://jumpin-media.s3-ap-southeast-2.amazonaws.com/test-00010203-0405-0607-0809-0a0b0c0d0e0f.jpg')
         self.assertIsNotNone(obj.get('signed_request'))
 
     def test_cors(self):
@@ -75,5 +80,5 @@ class SigningTest(unittest.TestCase):
         with freeze_time('2014-01-01'):
             resp = self.app.get('/?object_name=test.jpg&object_type=image/jpg')
             obj = json.loads(resp.data)
-            self.assertTrue(obj['signed_request'].endswith('Signature=MG9h6uOREqpZ9Ws3Yt0EnrnlIEg%3D'))
+            self.assertTrue(obj['signed_request'].endswith('Signature=Ko0P7%2F0wQbAOynxn22X3WkBC7eM%3D'))
 

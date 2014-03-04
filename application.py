@@ -6,6 +6,7 @@ import sha
 import os
 import flask
 import json
+import uuid
 from fnmatch import fnmatch
 
 application = flask.Flask(__name__)
@@ -35,6 +36,13 @@ def cors_headers_for(origin):
     return cors_headers
 
 
+# uniqueify makes an object name unique by interposing a GUID between the filename and the extension
+# e.g. uniqueify('test.jpg') => test-00010203-0405-0607-0809-0a0b0c0d0e0f.jpg
+def uniqueify(object_name):
+    path, ext = os.path.splitext(object_name)
+    return path + '-' + str(uuid.uuid4()) + ext
+
+
 @application.route('/')
 def sign_s3():
     if None in [AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET]:
@@ -47,16 +55,17 @@ def sign_s3():
     if not any(object_name.endswith(extension) for extension in ALLOWED_EXTENSIONS):
         return json.dumps({"error": "Invalid extension. We only allow {}".format(ALLOWED_EXTENSIONS)}), 403
 
+    object_id = uniqueify(object_name)
     mime_type = flask.request.args.get('object_type')
     expires = int(time.time() + SIGNATURE_EXPIRY_SECONDS)
     put_request = "PUT\n\n%s\n%d\n/%s/%s" % (mime_type,
-                                                 expires, S3_BUCKET, object_name)
+                                                 expires, S3_BUCKET, object_id)
     signature = base64.encodestring(
         hmac.new(AWS_SECRET_KEY, put_request, sha).digest())
     signature = urllib.quote_plus(signature.strip())
 
     url = 'https://%s.s3-%s.amazonaws.com/%s' % (S3_BUCKET,
-                                                 AWS_REGION, object_name)
+                                                 AWS_REGION, object_id)
 
     return json.dumps({
         'signed_request': '%s?AWSAccessKeyId=%s&Expires=%d&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
