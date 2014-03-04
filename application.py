@@ -23,6 +23,11 @@ S3_BUCKET = os.environ.get('S3_BUCKET')
 SIGNATURE_EXPIRY_SECONDS = 100
 
 
+# cors_headers_for will return the appropriate CORS headers for a request from `origin`.
+# If `origin` is allowed, it will return Access-Control-Allow-Origin: `origin`
+# Otherwise it returns Access-Control-Allow-Origin: null
+# Since the CORS spec only allows full URLs, or null, this is the only approach
+# we can use to provide some dynamicness in the CORS headers
 def cors_headers_for(origin):
     cors_headers = {
         'Access-Control-Allow-Origin': 'null', 
@@ -52,6 +57,7 @@ def sign_s3():
     if not object_name:
         return json.dumps({"error": "No object_name provided. Provide ?object_name and ?object_type as query parameters."}), 400
 
+    # Please don't upload viruses
     if not any(object_name.endswith(extension) for extension in ALLOWED_EXTENSIONS):
         return json.dumps({"error": "Invalid extension. We only allow {}".format(ALLOWED_EXTENSIONS)}), 403
 
@@ -71,6 +77,7 @@ def sign_s3():
         'signed_request': '%s?AWSAccessKeyId=%s&Expires=%d&Signature=%s' % (url, AWS_ACCESS_KEY, expires, signature),
         'url': url
     }), 200, cors_headers_for(flask.request.headers.get('Origin'))
+
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8000))
