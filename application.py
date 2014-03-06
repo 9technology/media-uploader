@@ -61,7 +61,7 @@ def sign_s3():
     if not any(object_name.endswith(extension) for extension in ALLOWED_EXTENSIONS):
         return json.dumps({"error": "Invalid extension. We only allow {}".format(ALLOWED_EXTENSIONS)}), 403
 
-    object_id = uniqueify(object_name)
+    object_id = uniqueify(urllib.quote(object_name))
     mime_type = flask.request.args.get('object_type')
     expires = int(time.time() + SIGNATURE_EXPIRY_SECONDS)
     put_request = "PUT\n\n%s\n%d\n/%s/%s" % (mime_type,
